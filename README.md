@@ -35,8 +35,8 @@ account, a cloud upload or a text-to-speech engine.
 | GGUF model library: 12 verified entries, resumable downloads, size + GGUF-header validation, delete/select | Implemented (downloads not executed here) | `lib/data/services/models/*`, `lib/features/models/model_library_screen.dart` |
 | Offline SRT/TXT → Myanmar translation with review/edit, cancel, progress | Implemented (inference not device-verified) | `lib/data/services/ai/translation_service.dart`, `lib/features/subtitles/translate_screen.dart` |
 | Local Movie Recap: FFmpeg evidence, optional local ASR/vision, editable script, TXT/SRT export | Implemented, not device-verified | `recap_service.dart`, `recap_screen.dart` |
-| Firebase Authentication | **Blocked — applicationId mismatch** (below) | no auth code added |
-| Google Sign-In | **Blocked** — no OAuth client / SHA-1 / SHA-256 registered | — |
+| Accounts / Firebase | Not included — the app runs fully offline | no auth code, no cloud |
+
 | TTS (Piper, VieNeu, any speech synthesis) | **Deliberately absent** | no dependency/service/UI |
 | iOS | Not configured (Android-only project) | — |
 | App icon: SVG source + adaptive/legacy PNGs | Implemented | `assets/branding/icon.svg`, `tool/generate_icons.py` |
@@ -111,50 +111,11 @@ The script writes legacy `mipmap-*/ic_launcher.png`, round icons, adaptive
 foreground PNGs, and `assets/branding/icon-512.png`. Adaptive icon XML lives in
 `android/app/src/main/res/mipmap-anydpi-v26/`.
 
-## Firebase Authentication — blocked by package mismatch
+## Accounts & cloud
 
-| Field | Supplied Firebase config | This app |
-|---|---|---|
-| Project | `amk-apk` (`267632318274`) | — |
-| Android package | `com.aungmyokyaw.sever` | **`dev.amkyaw.video_editor_app`** |
-| Firebase App ID | `1:267632318274:android:441e4b8cb66da60d04dadb` | — |
-| SHA-1/SHA-256 | not present in the config | — |
+Amkyaw Studio is fully offline and account-free. There is no login, no cloud sync, no telemetry and no Firebase integration in this build. Your projects, imported media, GGUF models and exports never leave the device.
 
-The package names **do not match**. Changing `applicationId` changes the app's
-identity (updates, signing, future store listing), so it was **not** changed and
-no Firebase code/plugin was added. To unblock:
-
-1. **Preferred**: register a new Android app in project `amk-apk` for package
-   `dev.amkyaw.video_editor_app`, download its `google-services.json`, place it at
-   `android/app/google-services.json` (never commit it); then add the Google
-   Services plugin + `firebase_auth` and implement email/password auth plus
-   auth-state routing; or
-2. **Only if accepted**: align `applicationId`/`namespace` to
-   `com.aungmyokyaw.sever` and document the identity change.
-
-Google Sign-In additionally needs the OAuth client and the release **SHA-1 and
-SHA-256** fingerprints in the Firebase console.
-
-`.gitignore` already excludes the config and signing material:
-
-```
-android/app/google-services.json
-google-services.json
-**/google-services.json
-*.jks
-*.keystore
-key.properties
-```
-
-Verify locally:
-
-```bash
-git check-ignore -v android/app/google-services.json
-git ls-files | grep -i google-services || echo "not tracked"
-```
-
-A Firebase Android client config is not a service-account credential; never use
-or request a service-account private key for this mobile app.
+If Firebase authentication is added later, it will require an Android client config whose package name matches the app's `applicationId`, and that config file must stay out of version control.
 
 ## Offline GGUF translation (SRT/TXT only)
 
@@ -273,8 +234,8 @@ done.
   model downloads use the network (fixed Hugging Face URLs).
 - Imported media is copied into the project folder in app-private storage;
   deleting a project deletes those copies. Models and exports are app-private.
-- The repository contains **no secrets**; `google-services.json` and signing
-  material are git-ignored and never committed or published.
+- No account, no telemetry, no cloud sync and no remote inference. Only
+  model downloads use the network (fixed Hugging Face URLs).
 - Licensed under **Apache License 2.0** (`LICENSE`). Bundled FFmpeg is GPL;
   review FFmpeg/FFmpegKit and each model's licence before distribution. Model
   metadata links to the upstream cards.
