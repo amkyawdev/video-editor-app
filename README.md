@@ -201,10 +201,11 @@ flutter build appbundle --release  # verified here: app-release.aab (~296 MB)
 **Verification in this workspace:** `flutter analyze` reports no issues;
 **63 unit/integration tests pass** (codecs, timeline ops, project model, FFmpeg
 command builder, translation planner, recap planner, model catalog, GGUF header,
-probe JSON). The app-level widget test currently hangs in this headless
-container (a minimal `MaterialApp` smoke widget test passes, so the hang is
-specific to the full app tree) and is tracked. No device/emulator run has been
-done.
+probe JSON). The full-app widget suite lives in `test_app/widget_test.dart` and is run
+manually (`flutter test test_app/widget_test.dart`); it is kept out of the default
+`flutter test` run because it hangs in this headless container. A minimal
+`MaterialApp` smoke widget test in `test/smoke_test.dart` runs in CI. No
+device/emulator run has been done.
 
 - `.github/workflows/android.yml` runs on push/PR: format check, analyze, tests,
   debug APK, release AAB, artifact upload. Release signing uses the
