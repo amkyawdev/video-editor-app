@@ -21,6 +21,7 @@ import 'panels/export_sheet.dart';
 import 'panels/media_panel.dart';
 import 'panels/subtitle_panel.dart';
 import 'widgets/preview_stage.dart';
+import 'fullscreen_preview_screen.dart';
 import 'widgets/timeline_view.dart';
 
 class EditorScreen extends StatefulWidget {
@@ -234,25 +235,21 @@ class _EditorScreenState extends State<EditorScreen> {
               builder: (BuildContext context, EditorController editor, _) {
                 return LayoutBuilder(
                   builder: (BuildContext context, BoxConstraints constraints) {
-                    final previewHeight = (constraints.maxHeight * 0.26).clamp(
-                      120.0,
-                      260.0,
+                    final wide = constraints.maxWidth >= 640;
+                    final previewHeight = wide
+                        ? (constraints.maxHeight * 0.55).clamp(240.0, 520.0)
+                        : (constraints.maxHeight * 0.40).clamp(200.0, 430.0);
+                    final timelineHeight =
+                        (constraints.maxHeight * (wide ? 0.28 : 0.20))
+                            .clamp(130.0, 210.0);
+                    final timeline = SizedBox(
+                      height: timelineHeight,
+                      child: TimelineView(
+                        onCueTap: (_) => setState(() => _panel = 3),
+                      ),
                     );
-                    final timelineHeight = (constraints.maxHeight * 0.24).clamp(
-                      140.0,
-                      196.0,
-                    );
-                    return Column(
+                    final panel = Column(
                       children: <Widget>[
-                        _header(editor),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(14, 2, 14, 0),
-                          child: SizedBox(
-                            height: previewHeight,
-                            child: const PreviewStage(),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
                         _toolBar(editor),
                         Expanded(
                           child: SingleChildScrollView(
@@ -260,11 +257,70 @@ class _EditorScreenState extends State<EditorScreen> {
                             child: _panelBody(editor),
                           ),
                         ),
-                        SizedBox(
-                          height: timelineHeight,
-                          child: TimelineView(
-                            onCueTap: (_) => setState(() => _panel = 3),
-                          ),
+                      ],
+                    );
+                    return Column(
+                      children: <Widget>[
+                        _header(editor),
+                        Expanded(
+                          child: wide
+                              ? Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      flex: 3,
+                                      child: Column(
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      12, 2, 12, 0),
+                                              child: PreviewStage(
+                                                onExpand: _openFullscreen,
+                                              ),
+                                            ),
+                                          ),
+                                          timeline,
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 340,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.panel,
+                                        border: Border(
+                                          left:
+                                              BorderSide(color: AppColors.stroke),
+                                        ),
+                                      ),
+                                      child: panel,
+                                    ),
+                                  ],
+                                )
+                              : Column(
+                                  children: <Widget>[
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          14, 2, 14, 0),
+                                      child: SizedBox(
+                                        height: previewHeight,
+                                        child: PreviewStage(
+                                          onExpand: _openFullscreen,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    _toolBar(editor),
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            14, 8, 14, 4),
+                                        child: _panelBody(editor),
+                                      ),
+                                    ),
+                                    timeline,
+                                  ],
+                                ),
                         ),
                       ],
                     );
@@ -273,6 +329,17 @@ class _EditorScreenState extends State<EditorScreen> {
               },
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  void _openFullscreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ChangeNotifierProvider<EditorController>.value(
+          value: controller,
+          child: FullscreenPreviewScreen(editor: controller),
         ),
       ),
     );
@@ -346,6 +413,13 @@ class _EditorScreenState extends State<EditorScreen> {
             icon: const Icon(Icons.redo_rounded, size: 19),
             color: editor.canRedo ? AppColors.textSecondary : AppColors.stroke,
           ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Import media',
+            onPressed: _busy ? null : _pickMedia,
+            icon: const Icon(Icons.download_rounded, size: 19),
+            color: AppColors.textSecondary,
+          ),
           GestureDetector(
             onTap: _openExport,
             child: Container(
@@ -380,65 +454,115 @@ class _EditorScreenState extends State<EditorScreen> {
   }
 
   Widget _toolBar(EditorController editor) {
-    const labels = <String>['Media', 'Clip', 'Audio', 'Text', 'FX'];
-    const icons = <IconData>[
-      Icons.perm_media_outlined,
-      Icons.content_cut_rounded,
-      Icons.graphic_eq_rounded,
-      Icons.subtitles_outlined,
-      Icons.auto_fix_high_rounded,
+    const groups = <_ToolGroup>[
+      _ToolGroup('Media', Icons.perm_media_outlined),
+      _ToolGroup('Trim & Clip', Icons.content_cut_rounded),
+      _ToolGroup('Audio', Icons.graphic_eq_rounded),
+      _ToolGroup('Subtitles', Icons.subtitles_outlined),
+      _ToolGroup('Effects', Icons.auto_fix_high_rounded),
     ];
-    return SizedBox(
-      height: 38,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        scrollDirection: Axis.horizontal,
-        itemCount: labels.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (BuildContext context, int index) {
-          final selected = _panel == index;
-          return GestureDetector(
-            onTap: () => setState(() => _panel = index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
-              alignment: Alignment.center,
+    final current = groups[_panel];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 10, 0),
+      child: Row(
+        children: <Widget>[
+          PopupMenuButton<int>(
+            initialValue: _panel,
+            color: AppColors.surfaceHigh,
+            onSelected: (int index) => setState(() => _panel = index),
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
+              for (var i = 0; i < groups.length; i++)
+                PopupMenuItem<int>(
+                  value: i,
+                  child: Row(
+                    children: <Widget>[
+                      Icon(
+                        groups[i].icon,
+                        size: 16,
+                        color: i == _panel
+                            ? AppColors.accent
+                            : AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        groups[i].label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: i == _panel
+                              ? AppColors.accent
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (i == _panel)
+                        const Icon(Icons.check_rounded,
+                            size: 15, color: AppColors.accent),
+                    ],
+                  ),
+                ),
+            ],
+            child: Container(
+              height: 34,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.alpha(AppColors.accent, 0.16)
-                    : AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.alpha(AppColors.accent, 0.14),
+                borderRadius: BorderRadius.circular(9),
                 border: Border.all(
-                  color: selected
-                      ? AppColors.alpha(AppColors.accent, 0.55)
-                      : AppColors.stroke,
+                  color: AppColors.alpha(AppColors.accent, 0.5),
                 ),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(
-                    icons[index],
-                    size: 15,
-                    color: selected
-                        ? AppColors.accent
-                        : AppColors.textSecondary,
-                  ),
+                  Icon(current.icon, size: 15, color: AppColors.accent),
                   const SizedBox(width: 6),
                   Text(
-                    labels[index],
-                    style: TextStyle(
+                    current.label,
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: selected
-                          ? AppColors.accent
-                          : AppColors.textSecondary,
+                      color: AppColors.accent,
                     ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 18,
+                    color: AppColors.accent,
                   ),
                 ],
               ),
             ),
-          );
-        },
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                _QuickTool(
+                  icon: Icons.download_rounded,
+                  tooltip: 'Import media',
+                  onTap: _busy ? null : _pickMedia,
+                ),
+                _QuickTool(
+                  icon: Icons.content_cut_rounded,
+                  tooltip: 'Split at playhead',
+                  onTap: editor.canSplit ? editor.splitAtPlayhead : null,
+                ),
+                _QuickTool(
+                  icon: Icons.subtitles_outlined,
+                  tooltip: 'Add subtitle cue',
+                  onTap: () => editor.addCueAtPlayhead(),
+                ),
+                _QuickTool(
+                  icon: Icons.ios_share_rounded,
+                  tooltip: 'Export',
+                  onTap: _openExport,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -470,5 +594,50 @@ class _EditorScreenState extends State<EditorScreen> {
       default:
         return EffectsPanel(editor: editor);
     }
+  }
+}
+
+class _ToolGroup {
+  const _ToolGroup(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
+
+class _QuickTool extends StatelessWidget {
+  const _QuickTool({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 30,
+          height: 30,
+          margin: const EdgeInsets.only(left: 4),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.stroke),
+          ),
+          child: Icon(
+            icon,
+            size: 16,
+            color: enabled ? AppColors.textSecondary : AppColors.stroke,
+          ),
+        ),
+      ),
+    );
   }
 }

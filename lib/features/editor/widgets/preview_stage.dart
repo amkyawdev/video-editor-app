@@ -18,7 +18,9 @@ import '../../../state/editor_controller.dart';
 /// playhead are played in sync. Overlay lanes and multi-track mixing are
 /// rendered authoritatively by FFmpeg on export.
 class PreviewStage extends StatefulWidget {
-  const PreviewStage({super.key});
+  const PreviewStage({super.key, this.onExpand});
+
+  final VoidCallback? onExpand;
 
   @override
   State<PreviewStage> createState() => _PreviewStageState();
@@ -432,8 +434,9 @@ class _PreviewStageState extends State<PreviewStage> {
           ),
         ),
         IconButton(
+          visualDensity: VisualDensity.compact,
           onPressed: editor.canSplit ? editor.splitAtPlayhead : null,
-          icon: const Icon(Icons.content_cut_rounded),
+          icon: const Icon(Icons.content_cut_rounded, size: 18),
           tooltip: 'Split at playhead',
           color: editor.canSplit ? AppColors.accent : AppColors.textMuted,
         ),

@@ -204,20 +204,28 @@ class ModelLibraryService {
       already = 0;
     }
 
-    final client = HttpClient();
+    final client = HttpClient()..connectionTimeout = const Duration(seconds: 60);
     try {
       final uri = Uri.parse(model.downloadUrl(file));
       final request = await client.getUrl(uri);
+      request.followRedirects = true;
+      request.headers.set(HttpHeaders.userAgentHeader, 'AmkyawStudio/1.0');
+      request.headers.set(HttpHeaders.acceptEncodingHeader, 'identity');
       if (already > 0) {
         request.headers.set(HttpHeaders.rangeHeader, 'bytes=$already-');
       }
       final response = await request.close();
       if (response.statusCode != HttpStatus.ok &&
           response.statusCode != HttpStatus.partialContent) {
-        throw ModelLibraryException(
-          'Download failed with HTTP ${response.statusCode}. '
-          'Open ${model.modelPageUrl} in a browser to check access.',
-        );
+        final hint = response.statusCode == HttpStatus.tooManyRequests
+            ? 'Hugging Face is rate limiting right now. Wait a minute and '
+                'tap Download again — the partial file is kept and resumes.'
+            : response.statusCode >= 500
+                ? 'The server is busy (HTTP ${response.statusCode}). Retry '
+                    'later; the partial file is kept.'
+                : 'Check that the model is public and this device has '
+                    'internet access (HTTP ${response.statusCode}).';
+        throw ModelLibraryException(hint);
       }
       if (response.statusCode == HttpStatus.ok && already > 0) {
         already = 0;

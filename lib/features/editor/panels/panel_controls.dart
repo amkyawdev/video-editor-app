@@ -217,7 +217,7 @@ class ActionTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       child: Container(
         margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(10),
@@ -226,8 +226,8 @@ class ActionTile extends StatelessWidget {
         child: Row(
           children: <Widget>[
             Container(
-              width: 30,
-              height: 30,
+              width: 28,
+              height: 28,
               decoration: BoxDecoration(
                 color: AppColors.alpha(color, 0.14),
                 borderRadius: BorderRadius.circular(8),

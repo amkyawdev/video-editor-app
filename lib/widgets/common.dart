@@ -150,8 +150,8 @@ class _GradientButtonState extends State<GradientButton> {
       scale: _down ? 0.98 : 1,
       duration: const Duration(milliseconds: 120),
       child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 22),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           gradient: enabled
               ? (widget.gradient ?? AppColors.accentGradient)
@@ -181,7 +181,7 @@ class _GradientButtonState extends State<GradientButton> {
               widget.label,
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                fontSize: 14,
+                fontSize: 13,
                 letterSpacing: -0.2,
                 color: enabled ? const Color(0xFF1A1204) : AppColors.textMuted,
               ),
