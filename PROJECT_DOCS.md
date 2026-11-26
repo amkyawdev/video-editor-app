@@ -143,7 +143,7 @@ Current automated coverage:
   (`test/model_catalog_test.dart`).
 - GGUF header inspector and probe JSON parsing.
 - Widget tests: home render, new-project sheet, entering the editor, existing
-  project list.
+  project list (full-app widget test currently hangs in the headless container).
 
 Manual device checklist (not executed here):
 
