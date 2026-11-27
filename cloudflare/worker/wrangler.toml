@@ -1,0 +1,10 @@
+name = "movie-recap-translate"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+# Keep secrets out of this file. Set them with:
+#   wrangler secret put TRANSLATION_PROVIDER_URL
+#   wrangler secret put TRANSLATION_PROVIDER_KEY
+# Optional allow-list for browser origins:
+[vars]
+ALLOWED_ORIGINS = "https://amkyawdev.github.io"

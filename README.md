@@ -111,6 +111,26 @@ The script writes legacy `mipmap-*/ic_launcher.png`, round icons, adaptive
 foreground PNGs, and `assets/branding/icon-512.png`. Adaptive icon XML lives in
 `android/app/src/main/res/mipmap-anydpi-v26/`.
 
+## Optional cloud integrations (scaffolded, not connected)
+
+The app works fully offline. Supabase, Cloudflare Worker translation and AI
+provider plugins are **prepared but not wired into the UI**:
+
+- Supabase: `supabase/migrations/0001_init.sql` (profiles, projects,
+  preferences, jobs + RLS owner policies). Client reads URL/key from
+  `--dart-define` only; no keys in source.
+- Cloudflare Worker: `cloudflare/worker/` translation proxy (validation, CORS,
+  rate limit, timeouts) and `lib/data/services/ai/cloudflare_translation_service.dart`.
+- Configuration names live in `.env.example`; populated `.env` files are ignored.
+- Firebase Auth remains blocked by the package mismatch described above.
+
+Setup, secrets and security steps: [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
+
+> **Security:** a Cloudflare API token was shared in chat. Revoke/rotate it in
+> Cloudflare and store the replacement only in GitHub Actions secrets or a local
+> environment. Never commit API keys, `.env` values, `google-services.json` or
+> signing material.
+
 ## Accounts & cloud
 
 Amkyaw Studio is fully offline and account-free. There is no login, no cloud sync, no telemetry and no Firebase integration in this build. Your projects, imported media, GGUF models and exports never leave the device.

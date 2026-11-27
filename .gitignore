@@ -57,3 +57,8 @@ key.properties
 # Workspace metadata
 .openhands/
 .agent_tmp/
+
+# Local environment (never commit populated values)
+.env
+.env.*
+!.env.example
