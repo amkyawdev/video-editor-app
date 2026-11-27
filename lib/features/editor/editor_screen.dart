@@ -240,8 +240,10 @@ class _EditorScreenState extends State<EditorScreen> {
                         ? (constraints.maxHeight * 0.55).clamp(240.0, 520.0)
                         : (constraints.maxHeight * 0.40).clamp(200.0, 430.0);
                     final timelineHeight =
-                        (constraints.maxHeight * (wide ? 0.28 : 0.20))
-                            .clamp(130.0, 210.0);
+                        (constraints.maxHeight * (wide ? 0.28 : 0.20)).clamp(
+                          130.0,
+                          210.0,
+                        );
                     final timeline = SizedBox(
                       height: timelineHeight,
                       child: TimelineView(
@@ -274,7 +276,11 @@ class _EditorScreenState extends State<EditorScreen> {
                                             child: Padding(
                                               padding:
                                                   const EdgeInsets.fromLTRB(
-                                                      12, 2, 12, 0),
+                                                    12,
+                                                    2,
+                                                    12,
+                                                    0,
+                                                  ),
                                               child: PreviewStage(
                                                 onExpand: _openFullscreen,
                                               ),
@@ -289,8 +295,9 @@ class _EditorScreenState extends State<EditorScreen> {
                                       decoration: const BoxDecoration(
                                         color: AppColors.panel,
                                         border: Border(
-                                          left:
-                                              BorderSide(color: AppColors.stroke),
+                                          left: BorderSide(
+                                            color: AppColors.stroke,
+                                          ),
                                         ),
                                       ),
                                       child: panel,
@@ -301,7 +308,11 @@ class _EditorScreenState extends State<EditorScreen> {
                                   children: <Widget>[
                                     Padding(
                                       padding: const EdgeInsets.fromLTRB(
-                                          14, 2, 14, 0),
+                                        14,
+                                        2,
+                                        14,
+                                        0,
+                                      ),
                                       child: SizedBox(
                                         height: previewHeight,
                                         child: PreviewStage(
@@ -314,7 +325,11 @@ class _EditorScreenState extends State<EditorScreen> {
                                     Expanded(
                                       child: SingleChildScrollView(
                                         padding: const EdgeInsets.fromLTRB(
-                                            14, 8, 14, 4),
+                                          14,
+                                          8,
+                                          14,
+                                          4,
+                                        ),
                                         child: _panelBody(editor),
                                       ),
                                     ),
@@ -495,8 +510,11 @@ class _EditorScreenState extends State<EditorScreen> {
                       ),
                       const Spacer(),
                       if (i == _panel)
-                        const Icon(Icons.check_rounded,
-                            size: 15, color: AppColors.accent),
+                        const Icon(
+                          Icons.check_rounded,
+                          size: 15,
+                          color: AppColors.accent,
+                        ),
                     ],
                   ),
                 ),

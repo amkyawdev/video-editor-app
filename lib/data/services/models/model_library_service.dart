@@ -204,7 +204,8 @@ class ModelLibraryService {
       already = 0;
     }
 
-    final client = HttpClient()..connectionTimeout = const Duration(seconds: 60);
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 60);
     try {
       final uri = Uri.parse(model.downloadUrl(file));
       final request = await client.getUrl(uri);
@@ -219,12 +220,12 @@ class ModelLibraryService {
           response.statusCode != HttpStatus.partialContent) {
         final hint = response.statusCode == HttpStatus.tooManyRequests
             ? 'Hugging Face is rate limiting right now. Wait a minute and '
-                'tap Download again — the partial file is kept and resumes.'
+                  'tap Download again — the partial file is kept and resumes.'
             : response.statusCode >= 500
-                ? 'The server is busy (HTTP ${response.statusCode}). Retry '
-                    'later; the partial file is kept.'
-                : 'Check that the model is public and this device has '
-                    'internet access (HTTP ${response.statusCode}).';
+            ? 'The server is busy (HTTP ${response.statusCode}). Retry '
+                  'later; the partial file is kept.'
+            : 'Check that the model is public and this device has '
+                  'internet access (HTTP ${response.statusCode}).';
         throw ModelLibraryException(hint);
       }
       if (response.statusCode == HttpStatus.ok && already > 0) {

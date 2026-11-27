@@ -60,12 +60,7 @@ class FullscreenPreviewScreen extends StatelessWidget {
                     child: const PreviewStage(),
                   ),
                 ),
-                SizedBox(
-                  height: 140,
-                  child: TimelineView(
-                    onCueTap: (_) {},
-                  ),
-                ),
+                SizedBox(height: 140, child: TimelineView(onCueTap: (_) {})),
               ],
             );
           },
